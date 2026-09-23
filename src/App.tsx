@@ -10,6 +10,7 @@ import { DemoConsole } from '@/components/DemoConsole'
 import { MenuView } from '@/components/MenuView'
 import { OrderView } from '@/components/OrderView'
 import { ServiceSheet } from '@/components/ServiceSheet'
+import { FaultReportView } from '@/components/FaultReportView'
 import { TopBar } from '@/components/TopBar'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
@@ -39,8 +40,11 @@ function createInitialState(): AppState {
 
   // 深链接：直接以 #/welcome 等地址打开时，先绑定示例桌台再进入对应视图；
   // home 无需桌台，其余流程视图（welcome/menu/order/checkout）需要桌台上下文。
-  if (requestedView && requestedView !== 'home') {
+  if (requestedView && requestedView !== 'home' && requestedView !== 'fault-report-2026') {
     return { ...initialState, table: 'A08', view: requestedView }
+  }
+  if (requestedView === 'fault-report-2026') {
+    return { ...initialState, table: null, view: 'fault-report-2026' }
   }
 
   return initialState
@@ -57,7 +61,7 @@ export default function App() {
   const waitingServices = state.services.filter((service) => service.status === 'waiting').length
 
   // 视图 ↔ URL hash 双向同步；未绑定桌台时只有 home 可达，其余地址回落到 home
-  const canView = useCallback((view: ViewName) => view === 'home' || !!state.table, [state.table])
+  const canView = useCallback((view: ViewName) => view === 'home' || view === 'fault-report-2026' || !!state.table, [state.table])
   const navigate = useCallback((view: ViewName) => dispatch({ type: 'SET_VIEW', view }), [])
   useViewRoute(state.view, { onNavigate: navigate, canView })
 
@@ -84,6 +88,10 @@ export default function App() {
   const handleToggleElderly = () => {
     toggleElderly()
     dispatch({ type: 'SET_MESSAGE', message: elderly ? '已切换为常规模式' : '已切换为老人模式' })
+  }
+
+  if (state.view === 'fault-report-2026') {
+    return <FaultReportView />
   }
 
   if (state.view === 'home' || !state.table) {
